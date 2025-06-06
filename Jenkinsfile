@@ -15,7 +15,7 @@ pipeline {
                 sshPublisher(
                     publishers: [
                         sshPublisherDesc(
-                            configName: "nemoserv",
+                            configName: "internet",
                             transfers: [
                                 sshTransfer(
                                     sourceFiles: "**/*",
