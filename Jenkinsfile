@@ -1,5 +1,12 @@
 pipeline {
     agent any
+    parameters {
+        choice(
+            choices: ['dev', 'prod'],
+            description: 'Выберите окружение для деплоя',
+            name: 'DEPLOY_ENV'
+        )
+    }
     stages {
         stage('Checkout') {
             steps { checkout scm }
@@ -12,25 +19,29 @@ pipeline {
         }
         stage('Deploy') {
             steps {
-                sshPublisher(
-                    publishers: [
-                        sshPublisherDesc(
-                            configName: "internet",
-                            transfers: [
-                                sshTransfer(
-                                    sourceFiles: "**/*",
-                                    remoteDirectory: "/opt/app/dev",
-                                    execCommand: """
-                                        mkdir -p /opt/app/dev
-                                        chmod -R 755 /opt/app/dev
-                                        echo 'Деплой успешен!'
-                                        ls -la /opt/app/dev
-                                    """
-                                )
-                            ]
-                        )
-                    ]
-                )
+                script {
+                    def remotePath = "/opt/app/${params.DEPLOY_ENV}"
+                    
+                    sshPublisher(
+                        publishers: [
+                            sshPublisherDesc(
+                                configName: "internet",
+                                transfers: [
+                                    sshTransfer(
+                                        sourceFiles: "**/*",
+                                        remoteDirectory: remotePath,
+                                        execCommand: """
+                                            mkdir -p ${remotePath}
+                                            chmod -R 755 ${remotePath}
+                                            echo 'Деплой успешен в ${remotePath}!'
+                                            ls -la ${remotePath}
+                                        """
+                                    )
+                                ]
+                            )
+                        ]
+                    )
+                }
             }
         }
     }
